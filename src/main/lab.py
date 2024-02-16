@@ -1,10 +1,12 @@
 import os
-
+from dotenv import load_dotenv
 from langchain.agents import AgentType, initialize_agent
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.chat_models import ChatHuggingFace
 from langchain_community.llms.huggingface_endpoint import HuggingFaceEndpoint
 from langchain_core.tools import Tool
+
+load_dotenv()
 
 """
 This lab will guide you through defining LangChain Agents with ConversationBufferWindowMemory. 
@@ -24,6 +26,7 @@ will use. No need to edit these
 """
 llm = HuggingFaceEndpoint(
         endpoint_url=os.environ['LLM_ENDPOINT'],
+        huggingfacehub_api_token=os.environ['HF_TOKEN'],
         task="text2text-generation",
         model_kwargs={
             "max_new_tokens": 200
@@ -55,7 +58,11 @@ tools = [
         name="greeting",
         description="When the user sends a greeting, send a greeting back.",
     ),
-    # SECOND TOOL GOES HERE
+    Tool.from_function(
+        func=get_historical_fact,
+        name="get_historical_fact",
+        description="If the user asks for a historical fact, give them a concise summary of the topic.",
+    )
 ]
 
 
@@ -84,7 +91,7 @@ agent_executor_no_memory = initialize_agent(
     agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
     verbose=True,
     memory=memory_no_history,
-    handle_parsing_errors=True
+    handle_parsing_errors=False
 )
 
 """
@@ -92,7 +99,14 @@ Defining a conversational agent that STORES 3 previous interactions in memory.
 This is the main task of the lab
 """
 # TODO: instantiate a ConversationBufferWindowMemory object that stores k=3 previous interactions in memory
-memory_with_history = "TODO"
+memory_with_history = ConversationBufferWindowMemory(memory_key="chat_history", k=3)
 
 # TODO: define a conversational agent that uses memory_with_history for its memory attribute
-agent_executor_with_memory = "TODO"
+agent_executor_with_memory = initialize_agent(
+    tools,
+    chat_model,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    verbose=True,
+    memory=memory_with_history,
+    handle_parsing_errors=False
+)

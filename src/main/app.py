@@ -1,4 +1,4 @@
-from src.main.lab import agent_executor_no_memory, agent_executor_with_memory
+from lab import agent_executor_no_memory, agent_executor_with_memory
 
 """
 This file contains some sample code that invokes conversational agents with and without memory.
